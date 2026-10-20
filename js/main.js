@@ -2,7 +2,7 @@
 import { state, isChecker, isCreator } from './state.js';
 import { load, setRenderer } from './data.js';
 import { renderGrid, renderList, renderDetail, initCalendar } from './calendar.js';
-import { initCreateEvent } from './create-event.js';
+import { initEventForm } from './event-form.js';
 import { renderAccount, initAccount } from './account.js';
 import { $, fmtLong, parseYmd } from './util.js';
 
@@ -37,7 +37,7 @@ $('go-today').addEventListener('click', () => {
 });
 
 initCalendar();
-initCreateEvent();
+initEventForm();
 initAccount();
 
 load();

@@ -1,6 +1,7 @@
 // Monatsansicht, Event-Liste und Tagesansicht (bestätigen, würfeln, abhaken)
 import { sb, state, gridDays, isChecker, isCreator, today, canConfirm, inTaskWindow, pendingFor } from './state.js';
 import { load } from './data.js';
+import { openEdit } from './event-form.js';
 import {
   $, h, ymd, shiftYmd, dayCount, key, color,
   fmtShort, fmtDate, fmtLong, fmtStamp, friendlyError, setStatus,
@@ -33,11 +34,13 @@ function chip(e, ds) {
   const done = state.eventChecks.has(key(e.id, ds));
   let badge = null;
   let taskInfo = '';
-  if (e.tasks_per_day > 0) {
-    const rolls = state.rolls.get(key(e.id, ds)) || [];
+  const dayRolls = state.rolls.get(key(e.id, ds)) || [];
+  if (e.tasks_per_day > 0 || dayRolls.length) {
+    const rolls = dayRolls;
     const tdone = rolls.filter((r) => state.taskChecks.has(`${key(e.id, ds)}|${r.slot}`)).length;
-    badge = h('span', { class: 'badge', text: `${tdone}/${e.tasks_per_day}` });
-    taskInfo = rolls.length ? `, Aufgaben ${tdone} von ${e.tasks_per_day} erledigt` : ', noch nicht gewürfelt';
+    const total = Math.max(e.tasks_per_day, rolls.length);
+    badge = h('span', { class: 'badge', text: `${tdone}/${total}` });
+    taskInfo = rolls.length ? `, Aufgaben ${tdone} von ${total} erledigt` : ', noch nicht gewürfelt';
   }
   const cls = ['chip'];
   if (done) cls.push('done');
@@ -80,7 +83,10 @@ export function renderList() {
       ...meta.map((m) => h('div', { class: 'meta', text: m })),
       h('div', { class: 'bar', 'aria-hidden': 'true' }, h('span', { style: `width:${Math.round((done / total) * 100)}%` })),
       (isCreator() && state.session?.user.id === e.created_by)
-        ? h('button', { class: 'btn danger-link', text: 'Event löschen', onclick: () => deleteEvent(e) })
+        ? h('div', { class: 'item-actions' },
+          h('button', { class: 'btn link', text: 'Bearbeiten', onclick: () => openEdit(e) }),
+          h('button', { class: 'btn danger-link', text: 'Löschen', 'aria-label': `${e.title} löschen`, onclick: () => deleteEvent(e) }),
+        )
         : null,
     ));
   }
@@ -107,7 +113,7 @@ export function renderDetail() {
       h('p', { text: fmtLong(day) }),
     ),
     confirmSection(e, day),
-    e.tasks_per_day > 0 ? taskSection(e, day) : null,
+    (e.tasks_per_day > 0 || (state.rolls.get(key(e.id, day)) || []).length) ? taskSection(e, day) : null,
   );
 }
 
@@ -143,7 +149,7 @@ function taskSection(e, day) {
   const rolls = state.rolls.get(k) || [];
   const sec = h('section', { class: 'detail-sec' },
     h('h4', { text: e.tasks_per_day === 1 ? 'Tagesaufgabe' : 'Tagesaufgaben' }),
-    h('p', { class: 'hint', text: `Würfel: ${e.dice_expr}` }),
+    e.dice_expr ? h('p', { class: 'hint', text: `Würfel: ${e.dice_expr}` }) : null,
   );
 
   if (rolls.length) {

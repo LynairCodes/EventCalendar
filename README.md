@@ -14,7 +14,7 @@ Daten und Login laufen über Supabase.
 | `js/state.js` | Supabase-Verbindung, gemeinsamer Zustand, Rollen und Zeitfenster |
 | `js/data.js` | Lädt Serverdatum und Kalenderdaten |
 | `js/calendar.js` | Monatsansicht, Event-Liste, Tagesansicht |
-| `js/create-event.js` | Dialog „Neues Event“ mit Würfelformel und Aufgabenliste |
+| `js/event-form.js` | Dialog „Neues Event“ / „Event bearbeiten“ mit Würfelformel und Aufgabenliste |
 | `js/account.js` | Anmelden, Abmelden, Passwort ändern |
 | `js/dice.js` | Würfelformeln prüfen und Verteilung berechnen |
 | `js/util.js` | Helfer für Datum, Formatierung und Meldungen |
