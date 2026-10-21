@@ -147,6 +147,14 @@ function openTasks(e) {
   );
 }
 
+// "7 Tagen", "1 Tag" (seit dem Tag der verpassten Aufgabe, laut Serverdatum)
+function sinceText(day) {
+  const t = today();
+  const n = t ? Math.max(1, dayCount(day, t) - 1) : null;
+  if (n == null) return fmtDate(day);
+  return n === 1 ? '1 Tag' : `${n} Tagen`;
+}
+
 function penaltyList() {
   const list = state.penalties;
   const focusId = state.focusEvent?.id;
@@ -154,7 +162,7 @@ function penaltyList() {
     h('span', { class: 'mark', 'aria-hidden': 'true', text: '!' }),
     h('div', { class: 'body' },
       h('div', { class: 'text', text: p.task_text }),
-      h('div', { class: 'meta strong', text: `Unerledigt seit ${fmtDate(p.day)}` }),
+      h('div', { class: 'meta strong', text: `Unerledigt seit ${sinceText(p.day)} (${fmtDate(p.day)})` }),
       h('div', { class: 'meta', text: `Strafe seit ${fmtStamp(p.penalty_since)}${p.auto_rolled ? ' · automatisch gewürfelt' : ''}` }),
       p.event_id !== focusId ? h('div', { class: 'meta', text: `Event: ${p.event_title}` }) : null,
       isChecker() ? h('button', {
