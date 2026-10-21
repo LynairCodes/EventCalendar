@@ -57,3 +57,29 @@ export function setStatus(msg, isError = false) {
   clearTimeout(statusTimer);
   if (msg && !isError) statusTimer = setTimeout(() => (el.textContent = ''), 4000);
 }
+
+// ---------- Zeitzone ----------
+const offFmt = new Intl.DateTimeFormat('en-US', {
+  timeZone: TZ, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
+  hour: '2-digit', minute: '2-digit', second: '2-digit',
+});
+function tzOffset(t) {
+  const p = Object.fromEntries(offFmt.formatToParts(new Date(t)).map((x) => [x.type, x.value]));
+  return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - Math.floor(t / 1000) * 1000;
+}
+// Zeitpunkt (ms) von "dateStr, hour:00 Uhr" in deutscher Zeit
+export function zonedEpoch(dateStr, hour = 0) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const wall = Date.UTC(y, m - 1, d, hour);
+  let t = wall;
+  for (let i = 0; i < 3; i++) t = wall - tzOffset(t);
+  return t;
+}
+
+// "3 Tage 04:12:09"
+export function fmtCountdown(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const days = Math.floor(s / 86400);
+  const rest = `${pad(Math.floor((s % 86400) / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
+  return days > 0 ? `${days} ${days === 1 ? 'Tag' : 'Tage'} ${rest}` : rest;
+}

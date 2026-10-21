@@ -11,9 +11,12 @@ Daten und Login laufen über Supabase.
 | `css/style.css` | Gestaltung (hell und dunkel) |
 | `js/config.js` | Supabase-Adresse, öffentlicher Key, Login-Domain |
 | `js/main.js` | Startpunkt, verbindet alle Teile |
-| `js/state.js` | Supabase-Verbindung, gemeinsamer Zustand, Rollen und Zeitfenster |
-| `js/data.js` | Lädt Serverdatum und Kalenderdaten |
-| `js/calendar.js` | Monatsansicht, Event-Liste, Tagesansicht |
+| `js/state.js` | Supabase-Verbindung, Zustand, Serverzeit, Rollen, Fristen und Status |
+| `js/data.js` | Lädt Serverzeit, Kalenderdaten und offene Strafen |
+| `js/calendar.js` | Monatsansicht und Tagesansicht |
+| `js/focus.js` | Seitenleiste: aktuelles Event, Countdown, offene Aufgaben, Strafen |
+| `js/actions.js` | Bestätigen, Würfeln, Abhaken, Strafen nachholen, Löschen |
+| `js/status.js` | Symbole und Texte für die Status-Anzeige |
 | `js/event-form.js` | Dialog „Neues Event“ / „Event bearbeiten“ mit Würfelformel und Aufgabenliste |
 | `js/account.js` | Anmelden, Abmelden, Passwort ändern |
 | `js/dice.js` | Würfelformeln prüfen und Verteilung berechnen |

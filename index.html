@@ -30,17 +30,22 @@
       <span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span>
     </div>
     <div id="grid" class="grid"></div>
-    <p id="legend" class="legend" hidden>Umrandete Einträge warten auf dich. Tippe einen Eintrag an, um ihn zu öffnen.</p>
+    <p class="legend">
+      <span><b class="lg s-done">✓</b> erledigt</span>
+      <span><b class="lg s-open">○</b> offen</span>
+      <span><b class="lg s-unrolled">?</b> nicht gewürfelt</span>
+      <span><b class="lg s-penalty">!</b> Strafe</span>
+      <span><b class="lg s-late">↺</b> nachgeholt</span>
+      <span><b class="lg c-missed">✗</b> nicht bestätigt</span>
+      <span id="legend-todo" hidden>Umrandet: wartet auf dich</span>
+    </p>
   </section>
 
   <aside class="side">
     <div id="create-wrap" hidden>
       <button class="btn primary" id="open-create">Neues Event anlegen</button>
     </div>
-    <div>
-      <h3>Events in diesem Monat</h3>
-      <ul id="event-list" class="event-list"></ul>
-    </div>
+    <div id="focus" class="focus"></div>
   </aside>
 
   <p id="status" class="status" role="status" aria-live="polite"></p>
@@ -76,9 +81,13 @@
   <form id="create-form" class="stack" novalidate>
     <h3 id="create-title">Neues Event</h3>
     <p id="edit-note" class="hint" hidden>Änderungen an Würfel und Aufgaben gelten für künftige Würfe. Bereits gewürfelte Aufgaben bleiben, wie sie sind.</p>
-    <label>Titel
-      <input name="evtitle" maxlength="100" required>
+    <label>Name des Events
+      <input name="evtitle" maxlength="100" required placeholder="z. B. Frühjahrsputz">
     </label>
+    <label>Tägliche Bestätigung
+      <input name="dailylabel" maxlength="150" placeholder="z. B. Habe Ordnung geschaffen oder aufgeräumt" aria-describedby="dailylabel-help">
+    </label>
+    <p id="dailylabel-help" class="hint">Dieser Satz wird jeden Tag am Folgetag bestätigt.</p>
     <div class="two">
       <label>Von <input type="date" name="start" required></label>
       <label>Bis <input type="date" name="end" required></label>

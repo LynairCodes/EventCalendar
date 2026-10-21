@@ -61,6 +61,7 @@ export async function openEdit(e) {
 
   setMode(e);
   cf.evtitle.value = e.title;
+  cf.dailylabel.value = e.daily_label || '';
   cf.start.value = e.start_date;
   cf.end.value = e.end_date;
   cf.tpd.value = String(e.tasks_per_day);
@@ -200,6 +201,7 @@ async function submit(ev) {
   const errEl = $('create-error');
   errEl.textContent = '';
   const title = cf.evtitle.value.trim();
+  const dailyLabel = cf.dailylabel.value.trim();
   const start = cf.start.value;
   const end = cf.end.value;
   const tpd = Number(cf.tpd.value);
@@ -209,7 +211,7 @@ async function submit(ev) {
   if (dayCount(start, end) > 367) { errEl.textContent = 'Ein Event darf höchstens ein Jahr dauern.'; return; }
 
   const payload = {
-    p_title: title, p_start: start, p_end: end, p_tasks_per_day: tpd,
+    p_title: title, p_daily_label: dailyLabel || null, p_start: start, p_end: end, p_tasks_per_day: tpd,
     p_dice_expr: null, p_dice_ast: null, p_tasks: [],
   };
   if (tpd > 0) {

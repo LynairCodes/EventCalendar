@@ -1,7 +1,8 @@
 // Startpunkt: verbindet die Teile und startet das Laden
-import { state, isChecker, isCreator } from './state.js';
+import { state, isChecker, isCreator, today, timeSlotKey } from './state.js';
 import { load, setRenderer } from './data.js';
-import { renderGrid, renderList, renderDetail, initCalendar } from './calendar.js';
+import { renderGrid, renderDetail, initCalendar } from './calendar.js';
+import { renderFocus, tickCountdown } from './focus.js';
 import { initEventForm } from './event-form.js';
 import { renderAccount, initAccount } from './account.js';
 import { $, fmtLong, parseYmd } from './util.js';
@@ -9,10 +10,10 @@ import { $, fmtLong, parseYmd } from './util.js';
 function renderAll() {
   renderAccount();
   renderGrid();
-  renderList();
+  renderFocus();
   $('create-wrap').hidden = !isCreator();
-  $('legend').hidden = !isChecker();
-  $('server-date').textContent = state.serverToday ? `Heute laut Server: ${fmtLong(state.serverToday)}` : '';
+  $('legend-todo').hidden = !isChecker();
+  $('server-date').textContent = today() ? `Heute laut Server: ${fmtLong(today())}` : '';
   if (state.detail && $('detail-dialog').open) renderDetail();
 }
 setRenderer(renderAll);
@@ -32,7 +33,7 @@ function setMonth(y, m) {
 $('prev').addEventListener('click', () => setMonth(state.year, state.month - 1));
 $('next').addEventListener('click', () => setMonth(state.year, state.month + 1));
 $('go-today').addEventListener('click', () => {
-  const t = state.serverToday ? parseYmd(state.serverToday) : new Date();
+  const t = today() ? parseYmd(today()) : new Date();
   setMonth(t.getFullYear(), t.getMonth());
 });
 
@@ -41,6 +42,16 @@ initEventForm();
 initAccount();
 
 load();
-// Serverdatum und Daten regelmäßig auffrischen (z. B. nach Mitternacht)
+
+// Jede Sekunde: Countdown weiterzählen. Um Mitternacht und um 15 Uhr neu laden,
+// damit Fristen und Strafen sofort stimmen.
+let lastSlot = '';
+setInterval(() => {
+  tickCountdown();
+  const k = timeSlotKey();
+  if (k && lastSlot && k !== lastSlot) load();
+  if (k) lastSlot = k;
+}, 1000);
+// Zusätzlich alle 5 Minuten und beim Zurückkehren in den Tab auffrischen
 setInterval(load, 5 * 60 * 1000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });

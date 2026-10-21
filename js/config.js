@@ -9,3 +9,7 @@ export const LOGIN_DOMAIN = 'lynair.com';
 export const TZ = 'Europe/Berlin';
 export const MIN_PASSWORD_LENGTH = 8;
 export const COLORS = ['#2F5BEA', '#0E8A6A', '#B5487A', '#B86E00', '#6A4BC4', '#0B7FA6'];
+
+// Ab dieser Uhrzeit (Folgetag, deutsche Zeit) werden offene Tagesaufgaben zu Strafen.
+// Muss zur Datenbank-Funktion task_deadline passen.
+export const DEADLINE_HOUR = 15;

@@ -1,17 +1,19 @@
-// Monatsansicht, Event-Liste und Tagesansicht (bestätigen, würfeln, abhaken)
-import { sb, state, gridDays, isChecker, isCreator, today, canConfirm, inTaskWindow, pendingFor } from './state.js';
-import { load } from './data.js';
-import { openEdit } from './event-form.js';
+// Monatsansicht und Tagesansicht
 import {
-  $, h, ymd, shiftYmd, dayCount, key, color,
-  fmtShort, fmtDate, fmtLong, fmtStamp, friendlyError, setStatus,
-} from './util.js';
+  state, gridDays, today, isChecker, isOwnEvent, findEvent,
+  confirmStatus, slotStatus, slotCount, canConfirm, canWorkTask, pendingFor, deadlinePassed, berlinDate,
+} from './state.js';
+import { confirmDay, toggleTask, rollDay, resolvePenalty, deleteEvent } from './actions.js';
+import { openEdit } from './event-form.js';
+import { CONFIRM, TASK } from './status.js';
+import { DEADLINE_HOUR } from './config.js';
+import { $, h, ymd, shiftYmd, color, fmtDate, fmtLong, fmtStamp, zonedEpoch } from './util.js';
 
 // ---------- Monatsansicht ----------
 export function renderGrid() {
   $('month-title').textContent = new Date(state.year, state.month, 1)
     .toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
-  const todayStr = state.serverToday ?? ymd(new Date());
+  const todayStr = today() ?? ymd(new Date());
   const frag = document.createDocumentFragment();
 
   for (const d of gridDays()) {
@@ -20,107 +22,77 @@ export function renderGrid() {
     if (d.getMonth() !== state.month) cls.push('out');
     if (ds === todayStr) cls.push('today');
     const cell = h('div', { class: cls.join(' ') }, h('div', { class: 'num', text: d.getDate() }));
-
     for (const e of state.events) {
       if (e.start_date > ds || e.end_date < ds) continue;
-      cell.append(chip(e, ds));
+      cell.append(eventBlock(e, ds));
     }
     frag.append(cell);
   }
   $('grid').replaceChildren(frag);
 }
 
-function chip(e, ds) {
-  const done = state.eventChecks.has(key(e.id, ds));
-  let badge = null;
-  let taskInfo = '';
-  const dayRolls = state.rolls.get(key(e.id, ds)) || [];
-  if (e.tasks_per_day > 0 || dayRolls.length) {
-    const rolls = dayRolls;
-    const tdone = rolls.filter((r) => state.taskChecks.has(`${key(e.id, ds)}|${r.slot}`)).length;
-    const total = Math.max(e.tasks_per_day, rolls.length);
-    badge = h('span', { class: 'badge', text: `${tdone}/${total}` });
-    taskInfo = rolls.length ? `, Aufgaben ${tdone} von ${total} erledigt` : ', noch nicht gewürfelt';
+const line = (icon, text, cls) => h('span', { class: `ev-line ${cls}` },
+  h('span', { class: 'ic', text: icon }),
+  h('span', { class: 'tx', text }),
+);
+
+function eventBlock(e, ds) {
+  const future = !!today() && ds > today();
+  const label = e.daily_label || 'Tag bestätigt';
+  const summary = [`${e.title}, ${fmtDate(ds)}`];
+  const lines = [];
+
+  if (!future) {
+    const conf = confirmStatus(e, ds);
+    lines.push(line(CONFIRM[conf].icon, label, `c-${conf}`));
+    summary.push(`${label}: ${CONFIRM[conf].label}`);
+    for (let s = 1; s <= slotCount(e, ds); s++) {
+      const st = slotStatus(e, ds, s);
+      const text = st.roll ? st.roll.task_text : TASK[st.status].label;
+      lines.push(line(TASK[st.status].icon, text, `s-${st.status}`));
+      summary.push(`Aufgabe ${s}: ${st.roll ? `${st.roll.task_text}, ` : ''}${TASK[st.status].label}`);
+    }
   }
-  const cls = ['chip'];
-  if (done) cls.push('done');
+
+  const cls = ['ev'];
+  if (future) cls.push('future');
   if (pendingFor(e, ds)) cls.push('todo');
   return h('button', {
     type: 'button', class: cls.join(' '), vars: { '--c': color(e.id) },
     'data-event': e.id, 'data-day': ds,
-    title: `${e.title}: ${done ? 'bestätigt' : 'offen'}${taskInfo}`,
-    'aria-label': `${e.title}, ${fmtDate(ds)}: ${done ? 'bestätigt' : 'offen'}${taskInfo}. Details öffnen`,
+    'aria-label': summary.join('. ') + '. Details öffnen',
   },
-    h('span', { class: 'box', 'aria-hidden': 'true', text: done ? '✓' : '' }),
-    h('span', { class: 't', text: e.title }),
-    badge,
+    h('span', { class: 'ev-title', 'aria-hidden': 'true', text: e.title }),
+    h('span', { class: 'ev-lines', 'aria-hidden': 'true' }, lines),
   );
-}
-
-// ---------- Event-Liste in der Seitenleiste ----------
-export function renderList() {
-  const list = $('event-list');
-  list.replaceChildren();
-  if (!state.events.length) {
-    list.append(h('li', { style: 'border:0;padding:0' }, h('p', {
-      class: 'empty',
-      text: isCreator() ? 'Keine Events in diesem Monat. Leg oben ein neues an.' : 'Keine Events in diesem Monat.',
-    })));
-    return;
-  }
-  for (const e of state.events) {
-    const total = dayCount(e.start_date, e.end_date);
-    let done = 0, rolled = 0, tdone = 0;
-    for (const k of state.eventChecks.keys()) if (k.startsWith(e.id + '|')) done++;
-    for (const [k, rs] of state.rolls) if (k.startsWith(e.id + '|')) rolled += rs.length;
-    for (const k of state.taskChecks.keys()) if (k.startsWith(e.id + '|')) tdone++;
-
-    const meta = [`${fmtShort(e.start_date)} bis ${fmtDate(e.end_date)}`, `${done} von ${total} Tagen bestätigt`];
-    if (e.tasks_per_day > 0) meta.push(`${tdone} von ${rolled} gewürfelten Aufgaben erledigt`);
-
-    list.append(h('li', { vars: { '--c': color(e.id) } },
-      h('div', { class: 'title', text: e.title }),
-      ...meta.map((m) => h('div', { class: 'meta', text: m })),
-      h('div', { class: 'bar', 'aria-hidden': 'true' }, h('span', { style: `width:${Math.round((done / total) * 100)}%` })),
-      (isCreator() && state.session?.user.id === e.created_by)
-        ? h('div', { class: 'item-actions' },
-          h('button', { class: 'btn link', text: 'Bearbeiten', onclick: () => openEdit(e) }),
-          h('button', { class: 'btn danger-link', text: 'Löschen', 'aria-label': `${e.title} löschen`, onclick: () => deleteEvent(e) }),
-        )
-        : null,
-    ));
-  }
-}
-
-async function deleteEvent(e) {
-  if (!confirm(`Event „${e.title}“ mit allen Bestätigungen, Würfen und Haken löschen?`)) return;
-  const { error } = await sb.from('events').delete().eq('id', e.id);
-  if (error) { setStatus('Löschen fehlgeschlagen: ' + friendlyError(error), true); return; }
-  setStatus('Event gelöscht.');
-  load();
 }
 
 // ---------- Tagesansicht ----------
 export function renderDetail() {
   if (!state.detail) return;
   const { eventId, day } = state.detail;
-  const e = state.events.find((x) => x.id === eventId);
+  const e = findEvent(eventId);
   if (!e) { $('detail-dialog').close(); return; }
 
   $('detail-body').replaceChildren(
     h('div', { class: 'detail-head', vars: { '--c': color(e.id) } },
       h('h3', { id: 'detail-title', text: e.title }),
       h('p', { text: fmtLong(day) }),
+      isOwnEvent(e) ? h('div', { class: 'item-actions' },
+        h('button', { class: 'btn link', text: 'Event bearbeiten', onclick: () => { $('detail-dialog').close(); openEdit(e); } }),
+        h('button', { class: 'btn danger-link', text: 'Event löschen', onclick: () => deleteEvent(e) }),
+      ) : null,
     ),
     confirmSection(e, day),
-    (e.tasks_per_day > 0 || (state.rolls.get(key(e.id, day)) || []).length) ? taskSection(e, day) : null,
+    slotCount(e, day) > 0 ? taskSection(e, day) : null,
   );
 }
 
 function confirmSection(e, day) {
-  const check = state.eventChecks.get(key(e.id, day));
+  const check = state.eventChecks.get(`${e.id}|${day}`);
+  const label = e.daily_label || 'Tag bestätigen';
   const sec = h('section', { class: 'detail-sec' },
-    h('h4', { text: 'Tag bestätigen' }),
+    h('h4', { text: label }),
     h('div', { class: 'state' },
       h('span', { class: 'dot' + (check ? ' on' : ''), 'aria-hidden': 'true' }),
       h('span', { text: check ? `Bestätigt am ${fmtStamp(check.checked_at)}` : 'Noch nicht bestätigt' }),
@@ -129,8 +101,8 @@ function confirmSection(e, day) {
   if (canConfirm(day)) {
     sec.append(h('div', {},
       check
-        ? h('button', { class: 'btn', text: 'Bestätigung zurücknehmen', disabled: state.acting, onclick: () => toggleConfirm(e, day, true) })
-        : h('button', { class: 'btn primary', text: 'Tag bestätigen', disabled: state.acting, onclick: () => toggleConfirm(e, day, false) }),
+        ? h('button', { class: 'btn', text: 'Bestätigung zurücknehmen', disabled: state.acting, onclick: () => confirmDay(e, day, true) })
+        : h('button', { class: 'btn primary', text: 'Bestätigen', disabled: state.acting, onclick: () => confirmDay(e, day, false) }),
     ));
   } else if (isChecker() && today()) {
     const allowed = shiftYmd(day, 1);
@@ -145,90 +117,73 @@ function confirmSection(e, day) {
 }
 
 function taskSection(e, day) {
-  const k = key(e.id, day);
-  const rolls = state.rolls.get(k) || [];
+  const n = slotCount(e, day);
+  const deadline = fmtStamp(zonedEpoch(shiftYmd(day, 1), DEADLINE_HOUR));
   const sec = h('section', { class: 'detail-sec' },
-    h('h4', { text: e.tasks_per_day === 1 ? 'Tagesaufgabe' : 'Tagesaufgaben' }),
+    h('h4', { text: n === 1 ? 'Tagesaufgabe' : 'Tagesaufgaben' }),
     e.dice_expr ? h('p', { class: 'hint', text: `Würfel: ${e.dice_expr}` }) : null,
   );
+  const ul = h('ul', { class: 'tasks' });
+  let needsRoll = false;
 
-  if (rolls.length) {
-    const ul = h('ul', { class: 'tasks' });
-    for (const r of rolls) {
-      const tc = state.taskChecks.get(`${k}|${r.slot}`);
-      ul.append(h('li', { class: 'task', vars: { '--c': color(e.id) } },
-        h('button', {
-          type: 'button', class: 'check' + (tc ? ' on' : ''),
-          'aria-pressed': String(!!tc),
-          'aria-label': `${r.task_text}: ${tc ? 'erledigt' : 'offen'}`,
-          disabled: !inTaskWindow(day) || state.acting,
-          text: tc ? '✓' : '',
-          onclick: () => toggleTask(e, day, r.slot, !!tc),
-        }),
-        h('span', { class: 'text', text: r.task_text }),
-        h('span', { class: 'roll', text: `Wurf: ${r.detail}, gewürfelt am ${fmtStamp(r.rolled_at)}` }),
-        tc ? h('span', { class: 'roll', text: `Erledigt am ${fmtStamp(tc.checked_at)}` }) : null,
-      ));
+  for (let s = 1; s <= n; s++) {
+    const st = slotStatus(e, day, s);
+    if (!st.roll) {
+      if (st.status === 'unrolled') needsRoll = true;
+      continue;
     }
-    sec.append(ul);
+    const r = st.roll;
+    const canToggle = canWorkTask(day) && (st.status === 'open' || st.status === 'done');
+    const info = [];
+    info.push(`Wurf: ${r.detail}, ${r.rolled_by ? 'gewürfelt' : 'automatisch gewürfelt'} am ${fmtStamp(r.rolled_at)}`);
+    if (st.status === 'done') info.push(`Erledigt am ${fmtStamp(st.check.checked_at)}`);
+    if (st.status === 'open') info.push(`Abhaken möglich bis ${deadline}`);
+    if (st.status === 'penalty') info.push(`Strafe seit ${deadline}`);
+    if (st.status === 'late') info.push(`Strafe seit ${deadline}, nachgeholt am ${fmtStamp(st.late.done_at)}`);
+
+    let action = null;
+    if (isChecker() && st.status === 'penalty') {
+      action = h('button', { class: 'btn small', text: 'Als nachgeholt markieren', disabled: state.acting, onclick: () => resolvePenalty(e.id, day, s, false) });
+    } else if (isChecker() && st.status === 'late' && berlinDate(Date.parse(st.late.done_at)) === today()) {
+      action = h('button', { class: 'btn link', text: 'Nachholen zurücknehmen', disabled: state.acting, onclick: () => resolvePenalty(e.id, day, s, true) });
+    }
+
+    ul.append(h('li', { class: `task t-${st.status}`, vars: { '--c': color(e.id) } },
+      h('button', {
+        type: 'button', class: 'check' + (st.status === 'done' || st.status === 'late' ? ' on' : ''),
+        'aria-pressed': String(st.status === 'done'),
+        'aria-label': `${r.task_text}: ${TASK[st.status].label}`,
+        disabled: !canToggle || state.acting,
+        text: TASK[st.status].icon,
+        onclick: () => toggleTask(e, day, s, st.status === 'done'),
+      }),
+      h('span', { class: 'text' }, r.task_text, st.status === 'penalty' ? h('span', { class: 'tag-penalty', text: 'Strafe' }) : null),
+      ...info.map((t) => h('span', { class: 'roll', text: t })),
+      action ? h('span', { class: 'roll' }, action) : null,
+    ));
   }
+  if (ul.children.length) sec.append(ul);
 
-  if (rolls.length < e.tasks_per_day) {
-    if (inTaskWindow(day)) {
-      sec.append(
-        h('div', {}, h('button', {
-          class: 'btn primary', disabled: state.acting, onclick: () => roll(e, day),
-          text: e.tasks_per_day === 1 ? 'Aufgabe auswürfeln' : 'Aufgaben auswürfeln',
-        })),
-        h('p', { class: 'hint', text: 'Der Wurf passiert auf dem Server und wird sofort gespeichert. Er lässt sich nicht wiederholen.' }),
-      );
-    } else {
-      sec.append(h('p', { class: 'hint', text: 'Noch nicht gewürfelt.' }));
-      if (isChecker() && today()) {
-        sec.append(h('p', {
-          class: 'hint',
-          text: day > today()
-            ? `Würfeln ist am ${fmtDate(day)} oder am Tag danach möglich.`
-            : 'Das Zeitfenster zum Würfeln ist vorbei.',
-        }));
-      }
-    }
-  } else if (isChecker() && !inTaskWindow(day)) {
-    sec.append(h('p', { class: 'hint', text: 'Aufgaben lassen sich nur am Tag selbst oder am Folgetag abhaken.' }));
+  if (needsRoll && canWorkTask(day)) {
+    sec.append(
+      h('div', {}, h('button', {
+        class: 'btn primary', disabled: state.acting, onclick: () => rollDay(e, day),
+        text: n === 1 ? 'Aufgabe auswürfeln' : 'Aufgaben auswürfeln',
+      })),
+      h('p', { class: 'hint', text: `Der Wurf passiert auf dem Server und lässt sich nicht wiederholen. Würfeln und Abhaken ist bis ${deadline} möglich, danach wird es zur Strafe.` }),
+    );
+  } else if (needsRoll) {
+    sec.append(h('p', { class: 'hint', text: 'Noch nicht gewürfelt.' }));
+  } else if (!ul.children.length && !deadlinePassed(day)) {
+    sec.append(h('p', { class: 'hint', text: `Würfeln ist ab ${fmtDate(day)} bis ${deadline} möglich.` }));
   }
   return sec;
 }
 
-// ---------- Aktionen in der Tagesansicht ----------
-async function act(fn) {
-  if (state.acting) return;
-  state.acting = true;
-  $('detail-error').textContent = '';
-  renderDetail();
-  try {
-    const { error } = await fn();
-    if (error) $('detail-error').textContent = friendlyError(error);
-  } finally {
-    state.acting = false;
-    await load();
-    renderDetail();
-  }
-}
-
-const toggleConfirm = (e, day, isDone) => act(() => isDone
-  ? sb.from('event_checks').delete().eq('event_id', e.id).eq('day', day)
-  : sb.from('event_checks').insert({ event_id: e.id, day }));
-
-const toggleTask = (e, day, slot, isDone) => act(() => isDone
-  ? sb.from('task_checks').delete().eq('event_id', e.id).eq('day', day).eq('slot', slot)
-  : sb.from('task_checks').insert({ event_id: e.id, day, slot }));
-
-const roll = (e, day) => act(() => sb.rpc('roll_tasks', { p_event_id: e.id, p_day: day }));
-
 // ---------- Start ----------
 export function initCalendar() {
   $('grid').addEventListener('click', (ev) => {
-    const btn = ev.target.closest('button.chip');
+    const btn = ev.target.closest('button.ev');
     if (!btn) return;
     state.detail = { eventId: Number(btn.dataset.event), day: btn.dataset.day };
     $('detail-error').textContent = '';
