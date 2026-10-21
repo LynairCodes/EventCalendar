@@ -1,11 +1,11 @@
 // Monatsansicht und Tagesansicht
 import {
   state, gridDays, today, isChecker, isOwnEvent, findEvent,
-  confirmStatus, slotStatus, slotCount, canConfirm, canWorkTask, pendingFor, deadlinePassed, berlinDate,
+  slotStatus, slotCount, canConfirm, canWorkTask, pendingFor, deadlinePassed, berlinDate,
 } from './state.js';
 import { confirmDay, toggleTask, rollDay, resolvePenalty, deleteEvent } from './actions.js';
 import { openEdit } from './event-form.js';
-import { CONFIRM, TASK } from './status.js';
+import { TASK } from './status.js';
 import { DEADLINE_HOUR } from './config.js';
 import { $, h, ymd, shiftYmd, color, fmtDate, fmtLong, fmtStamp, zonedEpoch } from './util.js';
 
@@ -38,14 +38,11 @@ const line = (icon, text, cls) => h('span', { class: `ev-line ${cls}` },
 
 function eventBlock(e, ds) {
   const future = !!today() && ds > today();
-  const label = e.daily_label || 'Tag bestätigt';
   const summary = [`${e.title}, ${fmtDate(ds)}`];
   const lines = [];
 
+  // Die Tagesbestätigung steht nur in der Tagesansicht, hier nur die Aufgaben
   if (!future) {
-    const conf = confirmStatus(e, ds);
-    lines.push(line(CONFIRM[conf].icon, label, `c-${conf}`));
-    summary.push(`${label}: ${CONFIRM[conf].label}`);
     for (let s = 1; s <= slotCount(e, ds); s++) {
       const st = slotStatus(e, ds, s);
       const text = st.roll ? st.roll.task_text : TASK[st.status].label;

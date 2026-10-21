@@ -243,3 +243,18 @@ legend { padding: 0 0.3rem; font-weight: 600; }
 .task.t-penalty .check { border-color: var(--danger); color: var(--danger); }
 .item-actions { display: flex; gap: 1rem; margin-top: 0.3rem; }
 .empty-card .empty { margin-top: 0.2rem; }
+
+/* ---------- Kalender passt auf eine Bildschirmhöhe (große Bildschirme) ---------- */
+:root { --top-h: 4.25rem; }
+@media (min-width: 960px) and (min-height: 560px) {
+  .top { height: var(--top-h); padding-top: 0; padding-bottom: 0; }
+  .cal {
+    display: flex; flex-direction: column;
+    height: calc(100vh - var(--top-h) - 1.25rem);
+    height: calc(100dvh - var(--top-h) - 1.25rem);
+  }
+  .month-head, .server-date, .weekdays, .legend { flex: none; }
+  .cal .grid { flex: 1; min-height: 0; grid-template-rows: repeat(6, minmax(0, 1fr)); }
+  .cal .cell { min-height: 0; overflow: hidden; }
+  .ev-lines { overflow: hidden; }
+}
