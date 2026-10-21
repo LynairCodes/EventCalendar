@@ -80,7 +80,7 @@ export function renderDetail() {
         h('button', { class: 'btn danger-link', text: 'Event löschen', onclick: () => deleteEvent(e) }),
       ) : null,
     ),
-    confirmSection(e, day),
+    (e.daily_confirm || state.eventChecks.has(`${e.id}|${day}`)) ? confirmSection(e, day) : null,
     slotCount(e, day) > 0 ? taskSection(e, day) : null,
   );
 }
@@ -95,13 +95,13 @@ function confirmSection(e, day) {
       h('span', { text: check ? `Bestätigt am ${fmtStamp(check.checked_at)}` : 'Noch nicht bestätigt' }),
     ),
   );
-  if (canConfirm(day)) {
+  if (canConfirm(day) && e.daily_confirm) {
     sec.append(h('div', {},
       check
         ? h('button', { class: 'btn', text: 'Bestätigung zurücknehmen', disabled: state.acting, onclick: () => confirmDay(e, day, true) })
         : h('button', { class: 'btn primary', text: 'Bestätigen', disabled: state.acting, onclick: () => confirmDay(e, day, false) }),
     ));
-  } else if (isChecker() && today()) {
+  } else if (isChecker() && today() && e.daily_confirm) {
     const allowed = shiftYmd(day, 1);
     sec.append(h('p', {
       class: 'hint',

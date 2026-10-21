@@ -41,8 +41,14 @@ function setMode(event) {
   $('edit-note').hidden = !event;
 }
 
+// Textfeld nur zeigen, wenn die tägliche Bestätigung aktiv ist
+function syncDailyConfirm() {
+  $('daily-label-wrap').hidden = !cf.dailyconfirm.checked;
+}
+
 function openCreate() {
   setMode(null);
+  syncDailyConfirm();
   cf.start.value = state.serverToday ?? ymd(new Date());
   cf.end.value = shiftYmd(cf.start.value, 6);
   cf.formula.value = '1d6';
@@ -61,7 +67,9 @@ export async function openEdit(e) {
 
   setMode(e);
   cf.evtitle.value = e.title;
+  cf.dailyconfirm.checked = !!e.daily_confirm;
   cf.dailylabel.value = e.daily_label || '';
+  syncDailyConfirm();
   cf.start.value = e.start_date;
   cf.end.value = e.end_date;
   cf.tpd.value = String(e.tasks_per_day);
@@ -201,6 +209,7 @@ async function submit(ev) {
   const errEl = $('create-error');
   errEl.textContent = '';
   const title = cf.evtitle.value.trim();
+  const dailyConfirm = cf.dailyconfirm.checked;
   const dailyLabel = cf.dailylabel.value.trim();
   const start = cf.start.value;
   const end = cf.end.value;
@@ -211,7 +220,7 @@ async function submit(ev) {
   if (dayCount(start, end) > 367) { errEl.textContent = 'Ein Event darf höchstens ein Jahr dauern.'; return; }
 
   const payload = {
-    p_title: title, p_daily_label: dailyLabel || null, p_start: start, p_end: end, p_tasks_per_day: tpd,
+    p_title: title, p_daily_confirm: dailyConfirm, p_daily_label: dailyLabel || null, p_start: start, p_end: end, p_tasks_per_day: tpd,
     p_dice_expr: null, p_dice_ast: null, p_tasks: [],
   };
   if (tpd > 0) {
@@ -257,6 +266,10 @@ export function initEventForm() {
     if (ev.target.closest('#dice-set') || ev.target === cf.tpd) updateDiceUI();
   });
   cf.tpd.addEventListener('change', updateDiceUI);
+  cf.dailyconfirm.addEventListener('change', () => {
+    syncDailyConfirm();
+    if (cf.dailyconfirm.checked) cf.dailylabel.focus();
+  });
   cf.addEventListener('submit', submit);
 
   $('toggle-dist').addEventListener('click', () => { distOpen = !distOpen; updateDiceUI(); });

@@ -6,7 +6,7 @@ let renderer = () => {};
 export const setRenderer = (fn) => { renderer = fn; };
 export const render = () => renderer();
 
-const EVENT_COLS = 'id, title, daily_label, start_date, end_date, tasks_per_day, dice_expr, created_by';
+const EVENT_COLS = 'id, title, daily_confirm, daily_label, start_date, end_date, tasks_per_day, dice_expr, created_by';
 let loadToken = 0;
 
 export async function load() {

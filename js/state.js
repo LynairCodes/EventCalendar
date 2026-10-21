@@ -64,9 +64,10 @@ export const taskOpen = (ds) => !!today() && (ds === today() || (ds === yesterda
 export const deadlinePassed = (ds) => !!today() && (ds < yesterday() || (ds === yesterday() && !beforeDeadline()));
 
 // ---------- Status eines Tages ----------
-// Bestätigung: 'done' | 'open' (heute möglich) | 'waiting' (Zukunft/heute) | 'missed'
+// Bestätigung: 'done' | 'open' (heute möglich) | 'waiting' (Zukunft/heute) | 'missed' | 'none' (nicht aktiv)
 export function confirmStatus(e, ds) {
   if (state.eventChecks.has(key(e.id, ds))) return 'done';
+  if (!e.daily_confirm) return 'none';
   if (!today()) return 'waiting';
   if (ds === yesterday()) return 'open';
   if (ds >= today()) return 'waiting';

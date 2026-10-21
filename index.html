@@ -83,10 +83,16 @@
     <label>Name des Events
       <input name="evtitle" maxlength="100" required placeholder="z. B. Frühjahrsputz">
     </label>
-    <label>Tägliche Bestätigung
-      <input name="dailylabel" maxlength="150" placeholder="z. B. Habe Ordnung geschaffen oder aufgeräumt" aria-describedby="dailylabel-help">
+    <label class="checkline">
+      <input type="checkbox" name="dailyconfirm">
+      <span>Tägliche Bestätigung aktivieren</span>
     </label>
-    <p id="dailylabel-help" class="hint">Dieser Satz wird jeden Tag am Folgetag bestätigt.</p>
+    <div id="daily-label-wrap" class="stack-sm" hidden>
+      <label>Text der Bestätigung
+        <input name="dailylabel" maxlength="150" placeholder="z. B. Habe Ordnung geschaffen oder aufgeräumt" aria-describedby="dailylabel-help">
+      </label>
+      <p id="dailylabel-help" class="hint">Wird jeden Tag rückwirkend am Folgetag bestätigt.</p>
+    </div>
     <div class="two">
       <label>Von <input type="date" name="start" required></label>
       <label>Bis <input type="date" name="end" required></label>

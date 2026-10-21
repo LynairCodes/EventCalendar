@@ -42,14 +42,19 @@ function eventCard(e, current) {
   const card = h('section', { class: 'focus-card', vars: { '--c': color(e.id) }, 'aria-labelledby': 'focus-title' },
     h('p', { class: 'eyebrow', text: current ? 'Aktuelles Event' : 'Nächstes Event' }),
     h('h3', { id: 'focus-title', text: e.title }),
-    e.daily_label ? h('p', { class: 'desc', text: `Täglich: ${e.daily_label}` }) : null,
+    (e.daily_confirm && e.daily_label) ? h('p', { class: 'desc', text: `Täglich: ${e.daily_label}` }) : null,
     h('p', { class: 'meta', text: `${fmtDate(e.start_date)} bis ${fmtDate(e.end_date)} · ${total} ${total === 1 ? 'Tag' : 'Tage'}` }),
   );
 
   if (current) {
+    // Mit täglicher Bestätigung: bestätigte Tage, sonst: wievielter Tag
+    const dayNo = Math.min(total, dayCount(e.start_date, today()));
+    const [n, text] = e.daily_confirm
+      ? [confirmed, `${confirmed} von ${total} Tagen bestätigt`]
+      : [dayNo, `Tag ${dayNo} von ${total}`];
     card.append(
-      h('p', { class: 'meta', text: `${confirmed} von ${total} Tagen bestätigt` }),
-      h('div', { class: 'bar', 'aria-hidden': 'true' }, h('span', { style: `width:${Math.round((confirmed / total) * 100)}%` })),
+      h('p', { class: 'meta', text }),
+      h('div', { class: 'bar', 'aria-hidden': 'true' }, h('span', { style: `width:${Math.round((n / total) * 100)}%` })),
     );
   } else {
     countdownTarget = zonedEpoch(e.start_date, 0);
