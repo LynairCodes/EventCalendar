@@ -269,7 +269,7 @@ legend { padding: 0 0.3rem; font-weight: 600; }
 .stack-sm { display: grid; gap: 0.35rem; }
 
 /* ---------- Drei Spalten: Beschreibung | Kalender | Seitenleiste ---------- */
-:root { --side-w: clamp(270px, 21vw, 360px); }
+:root { --side-w: clamp(270px, 21vw, 420px); }
 .cal { grid-area: cal; min-width: 0; }
 .side { grid-area: side; min-width: 0; }
 .desc-col { grid-area: desc; min-width: 0; }
