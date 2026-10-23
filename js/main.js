@@ -3,6 +3,7 @@ import { state, isChecker, isCreator, today, timeSlotKey } from './state.js';
 import { load, setRenderer } from './data.js';
 import { renderGrid, renderDetail, initCalendar } from './calendar.js';
 import { renderFocus, tickCountdown } from './focus.js';
+import { renderDescription } from './description.js';
 import { initEventForm } from './event-form.js';
 import { renderAccount, initAccount } from './account.js';
 import { $, fmtLong, parseYmd } from './util.js';
@@ -11,6 +12,7 @@ function renderAll() {
   renderAccount();
   renderGrid();
   renderFocus();
+  renderDescription();
   $('create-wrap').hidden = !isCreator();
   $('legend-todo').hidden = !isChecker();
   $('server-date').textContent = today() ? `Heute laut Server: ${fmtLong(today())}` : '';

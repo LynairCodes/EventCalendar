@@ -16,6 +16,7 @@
 </header>
 
 <main>
+  <aside id="desc-col" class="desc-col" aria-label="Event-Beschreibung"></aside>
   <section class="cal" aria-labelledby="month-title">
     <div class="month-head">
       <h2 id="month-title"></h2>
@@ -83,6 +84,16 @@
     <label>Name des Events
       <input name="evtitle" maxlength="100" required placeholder="z. B. Frühjahrsputz">
     </label>
+    <div class="stack-sm">
+      <div class="label-row">
+        <label for="desc-input">Beschreibung (optional)</label>
+        <button type="button" class="btn small" id="desc-preview-btn" aria-pressed="false">Vorschau</button>
+      </div>
+      <textarea id="desc-input" name="description" rows="7" maxlength="10000" aria-describedby="desc-help"
+        placeholder="Worum geht es? Regeln, Ziele, Hinweise …"></textarea>
+      <div id="desc-preview" class="desc-preview" hidden></div>
+      <p id="desc-help" class="hint">Markdown möglich: **fett**, *kursiv*, # Überschrift, - Liste, [Link](https://…)</p>
+    </div>
     <label class="checkline">
       <input type="checkbox" name="dailyconfirm">
       <span>Tägliche Bestätigung aktivieren</span>

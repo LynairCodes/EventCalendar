@@ -2,6 +2,7 @@
 import { sb, state } from './state.js';
 import { load } from './data.js';
 import { Dice } from './dice.js';
+import { renderMarkdown } from './markdown.js';
 import { $, h, ymd, shiftYmd, parseYmd, dayCount, fmtPct, fmtDate, friendlyError, setStatus } from './util.js';
 
 let cf;
@@ -39,6 +40,22 @@ function setMode(event) {
   $('create-title').textContent = event ? 'Event bearbeiten' : 'Neues Event';
   cf.querySelector('button[type=submit]').textContent = event ? 'Änderungen speichern' : 'Event anlegen';
   $('edit-note').hidden = !event;
+  setPreview(false);
+}
+
+// Markdown-Vorschau der Beschreibung ein-/ausschalten
+function setPreview(on) {
+  const btn = $('desc-preview-btn');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.textContent = on ? 'Bearbeiten' : 'Vorschau';
+  cf.description.hidden = on;
+  const pv = $('desc-preview');
+  pv.hidden = !on;
+  if (on) {
+    pv.replaceChildren(cf.description.value.trim()
+      ? renderMarkdown(cf.description.value)
+      : h('p', { class: 'empty', text: 'Noch keine Beschreibung.' }));
+  }
 }
 
 // Textfeld nur zeigen, wenn die tägliche Bestätigung aktiv ist
@@ -67,6 +84,7 @@ export async function openEdit(e) {
 
   setMode(e);
   cf.evtitle.value = e.title;
+  cf.description.value = e.description || '';
   cf.dailyconfirm.checked = !!e.daily_confirm;
   cf.dailylabel.value = e.daily_label || '';
   syncDailyConfirm();
@@ -210,6 +228,8 @@ async function submit(ev) {
   errEl.textContent = '';
   const title = cf.evtitle.value.trim();
   const dailyConfirm = cf.dailyconfirm.checked;
+  const description = cf.description.value.trim();
+  if (description.length > 10000) { errEl.textContent = 'Die Beschreibung darf höchstens 10.000 Zeichen haben.'; return; }
   const dailyLabel = cf.dailylabel.value.trim();
   const start = cf.start.value;
   const end = cf.end.value;
@@ -220,7 +240,7 @@ async function submit(ev) {
   if (dayCount(start, end) > 367) { errEl.textContent = 'Ein Event darf höchstens ein Jahr dauern.'; return; }
 
   const payload = {
-    p_title: title, p_daily_confirm: dailyConfirm, p_daily_label: dailyLabel || null, p_start: start, p_end: end, p_tasks_per_day: tpd,
+    p_title: title, p_daily_confirm: dailyConfirm, p_daily_label: dailyLabel || null, p_description: description || null, p_start: start, p_end: end, p_tasks_per_day: tpd,
     p_dice_expr: null, p_dice_ast: null, p_tasks: [],
   };
   if (tpd > 0) {
@@ -266,6 +286,9 @@ export function initEventForm() {
     if (ev.target.closest('#dice-set') || ev.target === cf.tpd) updateDiceUI();
   });
   cf.tpd.addEventListener('change', updateDiceUI);
+  $('desc-preview-btn').addEventListener('click', () => {
+    setPreview($('desc-preview-btn').getAttribute('aria-pressed') !== 'true');
+  });
   cf.dailyconfirm.addEventListener('change', () => {
     syncDailyConfirm();
     if (cf.dailyconfirm.checked) cf.dailylabel.focus();

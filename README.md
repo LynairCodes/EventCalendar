@@ -17,6 +17,8 @@ Daten und Login laufen über Supabase.
 | `js/focus.js` | Seitenleiste: aktuelles Event, Countdown, offene Aufgaben, Strafen |
 | `js/actions.js` | Bestätigen, Würfeln, Abhaken, Strafen nachholen, Löschen |
 | `js/status.js` | Symbole und Texte für die Status-Anzeige |
+| `js/description.js` | Linke Spalte: Beschreibung des aktuellen Events |
+| `js/markdown.js` | Markdown sicher in HTML umwandeln |
 | `js/event-form.js` | Dialog „Neues Event“ / „Event bearbeiten“ mit Würfelformel und Aufgabenliste |
 | `js/account.js` | Anmelden, Abmelden, Passwort ändern |
 | `js/dice.js` | Würfelformeln prüfen und Verteilung berechnen |

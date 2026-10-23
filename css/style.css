@@ -5,11 +5,11 @@
   --ink: #18222E;
   --muted: #5E6B78;
   --line: #D5DCE3;
-  --accent: #2F5BEA;
+  --accent: #8A2BB8;
   --accent-ink: #FFFFFF;
   --danger: #B42318;
   --ok: #0E7A4F;
-  --today: #E6ECFF;
+  --today: #F7EAFB;
   --chip-done-ink: #FFFFFF;
   color-scheme: light;
 }
@@ -20,11 +20,11 @@
     --ink: #E6ECF2;
     --muted: #9AA8B6;
     --line: #2C3743;
-    --accent: #7C9BFF;
+    --accent: #D9A6F5;
     --accent-ink: #0E1420;
     --danger: #FF8A80;
     --ok: #5FD3A0;
-    --today: #1F2A44;
+    --today: #2E2036;
     --chip-done-ink: #FFFFFF;
     color-scheme: dark;
   }
@@ -42,19 +42,23 @@ button, input, select { font: inherit; color: inherit; }
 
 .top {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  max-width: 1180px; margin: 0 auto; padding: 1.25rem 1.25rem 0.5rem;
+  max-width: 1600px; margin: 0 auto; padding: 1.25rem 1.25rem 0.5rem;
 }
 .brand { font-size: 1.1rem; font-weight: 650; margin: 0; letter-spacing: -0.01em; }
 .account { display: flex; align-items: center; gap: 0.75rem; color: var(--muted); font-size: 0.95rem; flex-wrap: wrap; justify-content: flex-end; }
 .account strong { color: var(--ink); font-weight: 600; }
 
 main {
-  max-width: 1180px; margin: 0 auto; padding: 0.5rem 1.25rem 3rem;
+  max-width: 1600px; margin: 0 auto; padding: 0.5rem 1.25rem 3rem;
+  grid-template-areas: "cal" "side" "desc" "status";
   display: grid; gap: 2rem;
 }
 @media (min-width: 960px) {
-  main { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
-  .status { grid-column: 1 / -1; }
+  main {
+    grid-template-columns: minmax(0, 1fr) var(--side-w);
+    grid-template-areas: "cal side" "desc side" "status status";
+    align-items: start;
+  }
 }
 
 .btn {
@@ -263,3 +267,60 @@ legend { padding: 0 0.3rem; font-weight: 600; }
 .checkline { display: flex; align-items: center; gap: 0.55rem; color: var(--ink); font-size: 0.95rem; cursor: pointer; }
 .checkline input { width: 1.1rem; height: 1.1rem; margin: 0; accent-color: var(--accent); }
 .stack-sm { display: grid; gap: 0.35rem; }
+
+/* ---------- Drei Spalten: Beschreibung | Kalender | Seitenleiste ---------- */
+:root { --side-w: clamp(270px, 21vw, 360px); }
+.cal { grid-area: cal; min-width: 0; }
+.side { grid-area: side; min-width: 0; }
+.desc-col { grid-area: desc; min-width: 0; }
+.status { grid-area: status; }
+@media (min-width: 1280px) {
+  main {
+    grid-template-columns: var(--side-w) minmax(0, 1fr) var(--side-w);
+    grid-template-areas: "desc cal side" "status status status";
+  }
+  .desc-col {
+    position: sticky; top: 0.75rem;
+    max-height: calc(100vh - var(--top-h) - 1.25rem);
+    max-height: calc(100dvh - var(--top-h) - 1.25rem);
+    overflow: auto;
+  }
+}
+
+.desc-card {
+  --c: var(--accent);
+  background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--c);
+  border-radius: 10px; padding: 1rem 1.1rem; display: grid; gap: 0.4rem;
+}
+.desc-card h2 { font-size: 1.45rem; letter-spacing: -0.02em; margin: 0 0 0.3rem; line-height: 1.2; }
+
+/* Markdown-Inhalt */
+.md { line-height: 1.55; overflow-wrap: anywhere; }
+.md > :first-child { margin-top: 0; }
+.md > :last-child { margin-bottom: 0; }
+.md h1, .md h2, .md h3, .md h4 { line-height: 1.25; margin: 1.1em 0 0.4em; letter-spacing: -0.01em; }
+.md h1 { font-size: 1.3rem; }
+.md h2 { font-size: 1.15rem; }
+.md h3, .md h4 { font-size: 1rem; }
+.md p, .md ul, .md ol, .md blockquote, .md pre, .md table { margin: 0 0 0.8em; }
+.md ul, .md ol { padding-left: 1.3em; }
+.md li + li { margin-top: 0.2em; }
+.md a { color: var(--accent); }
+.md blockquote { border-left: 3px solid var(--c, var(--accent)); padding: 0.1em 0 0.1em 0.8em; color: var(--muted); }
+.md code { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: 0.88em; background: var(--bg); padding: 0.1em 0.3em; border-radius: 4px; }
+.md pre { background: var(--bg); padding: 0.7em; border-radius: 6px; overflow: auto; }
+.md pre code { background: none; padding: 0; }
+.md img { max-width: 100%; height: auto; border-radius: 6px; }
+.md hr { border: 0; border-top: 1px solid var(--line); margin: 1em 0; }
+.md table { border-collapse: collapse; width: 100%; font-size: 0.9em; }
+.md th, .md td { border: 1px solid var(--line); padding: 0.3em 0.5em; text-align: left; }
+
+/* Beschreibungsfeld im Formular */
+textarea {
+  font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 0.55rem 0.6rem;
+  resize: vertical; min-height: 8rem; width: 100%;
+}
+.label-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.label-row label { font-size: 0.9rem; color: var(--muted); }
+.desc-preview { border: 1px dashed var(--line); border-radius: 8px; padding: 0.7rem 0.8rem; min-height: 8rem; }
