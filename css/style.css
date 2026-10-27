@@ -42,14 +42,14 @@ button, input, select { font: inherit; color: inherit; }
 
 .top {
   display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  max-width: 1600px; margin: 0 auto; padding: 1.25rem 1.25rem 0.5rem;
+  max-width: 1760px; margin: 0 auto; padding: 1.25rem 1.25rem 0.5rem;
 }
 .brand { font-size: 1.1rem; font-weight: 650; margin: 0; letter-spacing: -0.01em; }
 .account { display: flex; align-items: center; gap: 0.75rem; color: var(--muted); font-size: 0.95rem; flex-wrap: wrap; justify-content: flex-end; }
 .account strong { color: var(--ink); font-weight: 600; }
 
 main {
-  max-width: 1600px; margin: 0 auto; padding: 0.5rem 1.25rem 3rem;
+  max-width: 1760px; margin: 0 auto; padding: 0.5rem 1.25rem 3rem;
   grid-template-areas: "cal" "side" "desc" "status";
   display: grid; gap: 2rem;
 }
@@ -269,7 +269,7 @@ legend { padding: 0 0.3rem; font-weight: 600; }
 .stack-sm { display: grid; gap: 0.35rem; }
 
 /* ---------- Drei Spalten: Beschreibung | Kalender | Seitenleiste ---------- */
-:root { --side-w: clamp(270px, 21vw, 420px); }
+:root { --side-w: clamp(270px, 24vw, 420px); }
 .cal { grid-area: cal; min-width: 0; }
 .side { grid-area: side; min-width: 0; }
 .desc-col { grid-area: desc; min-width: 0; }
@@ -341,3 +341,7 @@ textarea {
 @media (max-width: 520px) {
   .cd-row { margin-left: 0; grid-template-columns: 1fr; }
 }
+
+/* Vorab gewürfelte Aufgaben (Zukunft) */
+.s-upcoming { color: var(--muted); }
+.s-upcoming .ic { border-style: dotted; }

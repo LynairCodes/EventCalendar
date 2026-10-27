@@ -41,18 +41,18 @@ function eventBlock(e, ds) {
   const summary = [`${e.title}, ${fmtDate(ds)}`];
   const lines = [];
 
-  // Die Tagesbestätigung steht nur in der Tagesansicht, hier nur die Aufgaben
-  if (!future) {
-    for (let s = 1; s <= slotCount(e, ds); s++) {
-      const st = slotStatus(e, ds, s);
-      const text = st.roll ? st.roll.task_text : TASK[st.status].label;
-      lines.push(line(TASK[st.status].icon, text, `s-${st.status}`));
-      summary.push(`Aufgabe ${s}: ${st.roll ? `${st.roll.task_text}, ` : ''}${TASK[st.status].label}`);
-    }
+  // Die Tagesbestätigung steht nur in der Tagesansicht, hier nur die Aufgaben.
+  // In der Zukunft nur Aufgaben, die Petra schon vorab gewürfelt hat.
+  for (let s = 1; s <= slotCount(e, ds); s++) {
+    const st = slotStatus(e, ds, s);
+    if (future && !st.roll) continue;
+    const text = st.roll ? st.roll.task_text : TASK[st.status].label;
+    lines.push(line(TASK[st.status].icon, text, `s-${st.status}`));
+    summary.push(`Aufgabe ${s}: ${st.roll ? `${st.roll.task_text}, ` : ''}${TASK[st.status].label}`);
   }
 
   const cls = ['ev'];
-  if (future) cls.push('future');
+  if (future && !lines.length) cls.push('future');
   if (pendingFor(e, ds)) cls.push('todo');
   return h('button', {
     type: 'button', class: cls.join(' '), vars: { '--c': color(e.id) },
@@ -121,7 +121,10 @@ function taskSection(e, day) {
     e.dice_expr ? h('p', { class: 'hint', text: `Würfel: ${e.dice_expr}` }) : null,
   );
   const ul = h('ul', { class: 'tasks' });
-  let needsRoll = false;
+  let needsRoll = false;   // Sophia kann gerade würfeln
+  let missing = 0;         // Slots ohne Wurf (Petra darf jederzeit würfeln)
+
+  for (let s = 1; s <= e.tasks_per_day; s++) if (!slotStatus(e, day, s).roll) missing++;
 
   for (let s = 1; s <= n; s++) {
     const st = slotStatus(e, day, s);
@@ -136,6 +139,7 @@ function taskSection(e, day) {
     if (r.alt_used) info.push(`Gewürfelt wurde „${r.base_text}“. Die hat noch Cooldown, daher die Alternative.`);
     if (st.status === 'done') info.push(`Erledigt am ${fmtStamp(st.check.checked_at)}`);
     if (st.status === 'open') info.push(`Abhaken möglich bis ${deadline}`);
+    if (st.status === 'upcoming') info.push(`Vorab gewürfelt. Abhaken möglich ab ${fmtDate(day)} bis ${deadline}`);
     if (st.status === 'penalty') info.push(`Strafe seit ${deadline}`);
     if (st.status === 'late') info.push(`Strafe seit ${deadline}, nachgeholt am ${fmtStamp(st.late.done_at)}`);
 
@@ -162,7 +166,22 @@ function taskSection(e, day) {
   }
   if (ul.children.length) sec.append(ul);
 
-  if (needsRoll && canWorkTask(day)) {
+  if (missing > 0 && isOwnEvent(e)) {
+    sec.append(
+      h('div', {}, h('button', {
+        class: 'btn primary', disabled: state.acting, onclick: () => rollDay(e, day),
+        text: missing === 1 ? 'Aufgabe auswürfeln' : `${missing} Aufgaben auswürfeln`,
+      })),
+      h('p', {
+        class: 'hint',
+        text: day > (today() ?? day)
+          ? 'Du kannst diesen Tag schon vorab auswürfeln. Das Ergebnis ist danach für alle sichtbar und lässt sich nicht wiederholen.'
+          : deadlinePassed(day)
+            ? 'Die Frist für diesen Tag ist vorbei. Eine jetzt gewürfelte Aufgabe wird sofort zur Strafe.'
+            : 'Der Wurf passiert auf dem Server und lässt sich nicht wiederholen.',
+      }),
+    );
+  } else if (needsRoll && canWorkTask(day)) {
     sec.append(
       h('div', {}, h('button', {
         class: 'btn primary', disabled: state.acting, onclick: () => rollDay(e, day),
@@ -172,7 +191,7 @@ function taskSection(e, day) {
     );
   } else if (needsRoll) {
     sec.append(h('p', { class: 'hint', text: 'Noch nicht gewürfelt.' }));
-  } else if (!ul.children.length && !deadlinePassed(day)) {
+  } else if (!ul.children.length && !deadlinePassed(day) && isChecker()) {
     sec.append(h('p', { class: 'hint', text: `Würfeln ist ab ${fmtDate(day)} bis ${deadline} möglich.` }));
   }
   return sec;

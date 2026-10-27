@@ -75,7 +75,8 @@ export function confirmStatus(e, ds) {
 }
 
 // Aufgaben-Slot: { status, roll, check }
-// status: 'done' | 'late' (Strafe nachgeholt) | 'open' | 'penalty' | 'unrolled' | 'missed' | 'future'
+// status: 'done' | 'late' (Strafe nachgeholt) | 'open' | 'penalty' | 'unrolled' | 'missed'
+//         | 'upcoming' (Zukunft, schon gewürfelt) | 'future' (Zukunft, noch nicht gewürfelt)
 export function slotStatus(e, ds, slot) {
   const roll = (state.rolls.get(key(e.id, ds)) || []).find((r) => r.slot === slot) || null;
   const check = state.taskChecks.get(slotKey(e.id, ds, slot)) || null;
@@ -85,6 +86,7 @@ export function slotStatus(e, ds, slot) {
     if (check) status = 'done';
     else if (late) status = 'late';
     else if (deadlinePassed(ds)) status = 'penalty';
+    else if (today() && ds > today()) status = 'upcoming'; // vorab gewürfelt, noch nicht dran
     else status = 'open';
   } else if (taskOpen(ds)) status = 'unrolled';
   else if (deadlinePassed(ds)) status = 'missed';

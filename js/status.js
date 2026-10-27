@@ -13,5 +13,6 @@ export const TASK = {
   penalty: { icon: '!', label: 'Strafe' },
   unrolled: { icon: '?', label: 'noch nicht gewürfelt' },
   missed: { icon: '–', label: 'nicht gewürfelt' },
+  upcoming: { icon: '◇', label: 'vorab gewürfelt' },
   future: { icon: '', label: '' },
 };
