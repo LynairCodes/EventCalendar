@@ -345,3 +345,19 @@ textarea {
 /* Vorab gewürfelte Aufgaben (Zukunft) */
 .s-upcoming { color: var(--muted); }
 .s-upcoming .ic { border-style: dotted; }
+
+/* ---------- Einstellungsseite ---------- */
+a.btn { display: inline-block; text-decoration: none; color: inherit; }
+.back-link { color: var(--ink); text-decoration: none; font-weight: 650; }
+.back-link:hover { text-decoration: underline; }
+main.settings {
+  display: grid; gap: 1.25rem; max-width: 680px;
+  grid-template-columns: minmax(0, 1fr); grid-template-areas: none;
+}
+main.settings h1 { font-size: clamp(1.6rem, 3.5vw, 2.2rem); letter-spacing: -0.03em; margin: 0.5rem 0 0; }
+main.settings #settings-body { display: grid; gap: 1.25rem; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem 1.2rem; }
+.card h2 { font-size: 1.1rem; margin: 0 0 0.8rem; }
+.stack { display: grid; gap: 0.75rem; }
+input[role="switch"] { width: 2.4rem; height: 1.3rem; }
+main.settings > * { grid-area: auto; }

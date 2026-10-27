@@ -149,29 +149,5 @@
   </form>
 </dialog>
 
-<!-- Passwort ändern -->
-<dialog id="password-dialog" aria-labelledby="password-title">
-  <form id="password-form" class="stack">
-    <h3 id="password-title">Passwort ändern</h3>
-    <!-- Verstecktes Feld, damit Passwort-Manager wissen, zu welchem Account das gehört -->
-    <input type="text" name="user" autocomplete="username" hidden>
-    <label>Aktuelles Passwort
-      <input type="password" name="current" autocomplete="current-password" required>
-    </label>
-    <label>Neues Passwort
-      <input type="password" name="next" autocomplete="new-password" minlength="8" required>
-    </label>
-    <label>Neues Passwort wiederholen
-      <input type="password" name="repeat" autocomplete="new-password" minlength="8" required>
-    </label>
-    <p class="hint">Mindestens 8 Zeichen. Sonderzeichen sind erlaubt.</p>
-    <p id="password-error" class="error" role="alert"></p>
-    <div class="row">
-      <button type="button" class="btn" data-close>Abbrechen</button>
-      <button type="submit" class="btn primary">Passwort ändern</button>
-    </div>
-  </form>
-</dialog>
-
 </body>
 </html>

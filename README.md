@@ -8,6 +8,7 @@ Daten und Login laufen über Supabase.
 | Datei | Inhalt |
 | --- | --- |
 | `index.html` | Seitengerüst und Dialoge |
+| `einstellungen.html` | Einstellungsseite: Anzeigename, Rechte, Passwort |
 | `css/style.css` | Gestaltung (hell und dunkel) |
 | `js/config.js` | Supabase-Adresse, öffentlicher Key, Login-Domain |
 | `js/main.js` | Startpunkt, verbindet alle Teile |
@@ -20,7 +21,8 @@ Daten und Login laufen über Supabase.
 | `js/description.js` | Linke Spalte: Beschreibung des aktuellen Events |
 | `js/markdown.js` | Markdown sicher in HTML umwandeln |
 | `js/event-form.js` | Dialog „Neues Event“ / „Event bearbeiten“ mit Würfelformel und Aufgabenliste |
-| `js/account.js` | Anmelden, Abmelden, Passwort ändern |
+| `js/account.js` | Anmelden, Abmelden, Anzeige im Kopfbereich |
+| `js/settings.js` | Logik der Einstellungsseite |
 | `js/dice.js` | Würfelformeln prüfen und Verteilung berechnen |
 | `js/util.js` | Helfer für Datum, Formatierung und Meldungen |
 

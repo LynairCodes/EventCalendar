@@ -166,7 +166,12 @@ function taskSection(e, day) {
   }
   if (ul.children.length) sec.append(ul);
 
-  if (missing > 0 && isOwnEvent(e)) {
+  if (missing > 0 && isOwnEvent(e) && !state.settings.creator_can_roll) {
+    sec.append(
+      h('div', {}, h('button', { class: 'btn primary', disabled: true, text: missing === 1 ? 'Aufgabe auswürfeln' : `${missing} Aufgaben auswürfeln` })),
+      h('p', { class: 'hint', text: 'Das Würfeln ist für dich gerade nicht freigegeben. Die Freigabe erteilt die Person, die die Aufgaben erledigt, in ihren Einstellungen.' }),
+    );
+  } else if (missing > 0 && isOwnEvent(e)) {
     sec.append(
       h('div', {}, h('button', {
         class: 'btn primary', disabled: state.acting, onclick: () => rollDay(e, day),

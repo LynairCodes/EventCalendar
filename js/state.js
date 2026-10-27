@@ -21,6 +21,7 @@ export const state = {
   taskChecks: new Map(),    // "id|day|slot" -> Zeile
   penaltyChecks: new Map(), // "id|day|slot" -> Zeile
   penalties: [],            // offene Strafen (alle Events)
+  settings: { creator_can_roll: false }, // gemeinsame Einstellungen
   detail: null,             // { eventId, day } der offenen Tagesansicht
   acting: false,
 };

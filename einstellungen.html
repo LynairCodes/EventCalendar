@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Einstellungen · Kalender</title>
+<link rel="stylesheet" href="css/style.css">
+<script type="module" src="js/settings.js"></script>
+</head>
+<body>
+
+<header class="top">
+  <p class="brand"><a href="index.html" class="back-link">← Zum Kalender</a></p>
+  <div id="account" class="account"></div>
+</header>
+
+<main class="settings">
+  <h1>Einstellungen</h1>
+
+  <section id="need-login" class="card" hidden>
+    <p>Bitte melde dich zuerst auf der <a href="index.html">Startseite</a> an.</p>
+  </section>
+
+  <div id="settings-body" hidden>
+    <!-- Profil -->
+    <section class="card" aria-labelledby="profile-title">
+      <h2 id="profile-title">Profil</h2>
+      <form id="name-form" class="stack">
+        <p class="hint">Login-Name: <strong id="login-name"></strong> (lässt sich nicht ändern)</p>
+        <label>Anzeigename
+          <input name="displayname" maxlength="40" autocomplete="nickname" aria-describedby="name-help">
+        </label>
+        <p id="name-help" class="hint">So wirst du auf der Seite angezeigt. Leer lassen, um den Login-Namen zu verwenden.</p>
+        <p id="name-error" class="error" role="alert"></p>
+        <div class="row" style="justify-content:flex-start">
+          <button type="submit" class="btn primary">Anzeigename speichern</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Rechte -->
+    <section id="rights-card" class="card" aria-labelledby="rights-title" hidden>
+      <h2 id="rights-title">Rechte</h2>
+      <div id="rights-body" class="stack"></div>
+      <p id="rights-error" class="error" role="alert"></p>
+    </section>
+
+    <!-- Passwort -->
+    <section class="card" aria-labelledby="password-title">
+      <h2 id="password-title">Passwort ändern</h2>
+      <form id="password-form" class="stack">
+        <input type="text" name="user" autocomplete="username" hidden>
+        <label>Aktuelles Passwort
+          <input type="password" name="current" autocomplete="current-password" required>
+        </label>
+        <label>Neues Passwort
+          <input type="password" name="next" autocomplete="new-password" minlength="8" required>
+        </label>
+        <label>Neues Passwort wiederholen
+          <input type="password" name="repeat" autocomplete="new-password" minlength="8" required>
+        </label>
+        <p class="hint">Mindestens 8 Zeichen. Sonderzeichen sind erlaubt.</p>
+        <p id="password-error" class="error" role="alert"></p>
+        <div class="row" style="justify-content:flex-start">
+          <button type="submit" class="btn primary">Passwort ändern</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <p id="status" class="status" role="status" aria-live="polite"></p>
+</main>
+
+</body>
+</html>

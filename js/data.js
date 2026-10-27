@@ -29,11 +29,13 @@ export async function load() {
   const serverDay = clockRes.data?.today ?? ymd(new Date());
 
   // 2) Events der Ansicht und aktuelles/nächstes Event
-  const [eventsRes, focusRes, penRes] = await Promise.all([
+  const [eventsRes, focusRes, penRes, setRes] = await Promise.all([
     sb.from('events').select(EVENT_COLS).lte('start_date', to).gte('end_date', from).order('start_date').order('id'),
     sb.from('events').select(EVENT_COLS).gte('end_date', serverDay).order('start_date').order('id').limit(1),
     sb.from('open_penalties').select('event_id, event_title, day, slot, task_text, detail, auto_rolled, penalty_since').order('day').order('slot'),
+    sb.from('app_settings').select('creator_can_roll').eq('id', 1).maybeSingle(),
   ]);
+  if (!setRes.error && setRes.data) state.settings = setRes.data;
   if (token !== loadToken) return;
   const err1 = eventsRes.error || focusRes.error || penRes.error;
   if (err1) { setStatus('Daten konnten nicht geladen werden: ' + err1.message, true); return; }
