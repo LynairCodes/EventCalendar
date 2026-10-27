@@ -29,7 +29,7 @@ function taskRow(numbers = '', text = '', cooldown = null, alt = '') {
     h('label', { class: 'cd-days' }, 'Cooldown',
       h('input', { class: 'cd', type: 'number', min: '1', max: '365', step: '1', inputmode: 'numeric', value: hasCd ? String(cooldown) : '3', 'aria-label': 'Cooldown in Tagen' }),
       'Tage'),
-    h('input', { class: 'alt', maxlength: '300', value: alt, autocomplete: 'off', placeholder: 'Alternative, z. B. Bad putzen', 'aria-label': 'Alternative Aufgabe während des Cooldowns' }),
+    h('input', { class: 'alt', maxlength: '300', value: alt, autocomplete: 'off', placeholder: 'Alternative, z. B. Nasch-Verbot', 'aria-label': 'Alternative Aufgabe während des Cooldowns' }),
   );
   const cdBtn = h('button', {
     type: 'button', class: 'btn icon cd-toggle' + (hasCd ? ' on' : ''), text: 'CD',
