@@ -22,14 +22,40 @@ function formatNumbers(nums) {
   return parts.join(', ');
 }
 
-function taskRow(numbers = '', text = '') {
-  const row = h('div', { class: 'task-row' },
-    h('input', { class: 'nums', 'aria-label': 'Würfelergebnisse für diese Aufgabe', placeholder: 'z. B. 1-2', value: numbers, autocomplete: 'off' }),
-    h('input', { class: 'txt', 'aria-label': 'Aufgabe', placeholder: 'Aufgabe', maxlength: '300', value: text, autocomplete: 'off' }),
-    h('span', { class: 'prob' }),
-    h('button', { type: 'button', class: 'btn icon', 'aria-label': 'Aufgabe entfernen', text: '×', onclick: () => { row.remove(); updateDiceUI(); } }),
+// Eine Aufgabe: Ergebnisse, Text, Chance und optional Cooldown mit Alternative
+function taskRow(numbers = '', text = '', cooldown = null, alt = '') {
+  const hasCd = cooldown != null;
+  const cdRow = h('div', { class: 'cd-row', hidden: !hasCd },
+    h('label', { class: 'cd-days' }, 'Cooldown',
+      h('input', { class: 'cd', type: 'number', min: '1', max: '365', step: '1', inputmode: 'numeric', value: hasCd ? String(cooldown) : '3', 'aria-label': 'Cooldown in Tagen' }),
+      'Tage'),
+    h('input', { class: 'alt', maxlength: '300', value: alt, autocomplete: 'off', placeholder: 'Alternative, z. B. Bad putzen', 'aria-label': 'Alternative Aufgabe während des Cooldowns' }),
   );
-  return row;
+  const cdBtn = h('button', {
+    type: 'button', class: 'btn icon cd-toggle' + (hasCd ? ' on' : ''), text: 'CD',
+    title: 'Cooldown einstellen', 'aria-label': 'Cooldown für diese Aufgabe', 'aria-pressed': String(hasCd),
+    onclick: () => {
+      const on = cdBtn.getAttribute('aria-pressed') !== 'true';
+      cdBtn.setAttribute('aria-pressed', String(on));
+      cdBtn.classList.toggle('on', on);
+      cdRow.hidden = !on;
+      if (on) cdRow.querySelector('.alt').focus();
+      updateDiceUI();
+    },
+  });
+  const item = h('div', { class: 'task-item' },
+    h('div', { class: 'task-row' },
+      h('input', { class: 'nums', 'aria-label': 'Würfelergebnisse für diese Aufgabe', placeholder: 'z. B. 1-2', value: numbers, autocomplete: 'off' }),
+      h('input', { class: 'txt', 'aria-label': 'Aufgabe', placeholder: 'Aufgabe', maxlength: '300', value: text, autocomplete: 'off' }),
+      h('span', { class: 'prob' }),
+      h('span', { class: 'row-btns' },
+        cdBtn,
+        h('button', { type: 'button', class: 'btn icon', 'aria-label': 'Aufgabe entfernen', text: '×', onclick: () => { item.remove(); updateDiceUI(); } }),
+      ),
+    ),
+    cdRow,
+  );
+  return item;
 }
 
 function setMode(event) {
@@ -77,7 +103,7 @@ function openCreate() {
 export async function openEdit(e) {
   const { data: tasks, error } = await sb
     .from('event_tasks')
-    .select('text, numbers')
+    .select('text, numbers, cooldown_days, alt_text')
     .eq('event_id', e.id)
     .order('id');
   if (error) { setStatus('Aufgaben konnten nicht geladen werden: ' + friendlyError(error), true); return; }
@@ -92,7 +118,7 @@ export async function openEdit(e) {
   cf.end.value = e.end_date;
   cf.tpd.value = String(e.tasks_per_day);
   cf.formula.value = e.dice_expr || '1d6';
-  const rows = tasks.map((t) => taskRow(formatNumbers(t.numbers), t.text));
+  const rows = tasks.map((t) => taskRow(formatNumbers(t.numbers), t.text, t.cooldown_days, t.alt_text || ''));
   $('task-rows').replaceChildren(...(rows.length ? rows : [taskRow()]));
   updateDiceUI();
   $('create-dialog').showModal();
@@ -187,13 +213,35 @@ function updateDiceUI() {
       continue;
     }
     if (!text) rowError ??= 'Jede Aufgabe braucht einen Text.';
+
+    // Cooldown (optional)
+    let cooldown_days = null;
+    let alt_text = null;
+    const cdOn = r.querySelector('.cd-toggle').getAttribute('aria-pressed') === 'true';
+    const cdEl = r.querySelector('.cd');
+    const altEl = r.querySelector('.alt');
+    cdEl.setAttribute('aria-invalid', 'false');
+    altEl.setAttribute('aria-invalid', 'false');
+    if (cdOn) {
+      cooldown_days = Number(cdEl.value);
+      alt_text = altEl.value.trim();
+      if (!Number.isInteger(cooldown_days) || cooldown_days < 1 || cooldown_days > 365) {
+        cdEl.setAttribute('aria-invalid', 'true');
+        rowError ??= 'Ein Cooldown muss zwischen 1 und 365 Tagen liegen.';
+      }
+      if (!alt_text) {
+        altEl.setAttribute('aria-invalid', 'true');
+        rowError ??= `Für „${text || 'eine Aufgabe'}“ mit Cooldown fehlt die Alternative.`;
+      }
+    }
+
     let p = 0;
     for (const n of nums) {
       count.set(n, (count.get(n) || 0) + 1);
       if (n >= lo && n <= hi) p += dist.p[n - lo];
     }
     probEl.textContent = fmtPct(p);
-    tasks.push({ text, numbers: nums });
+    tasks.push({ text, numbers: nums, cooldown_days, alt_text });
   }
 
   const missing = [], doubled = [], outside = [];

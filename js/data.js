@@ -51,7 +51,7 @@ export async function load() {
   if (ids.length) {
     const [ec, dr, tc, pc] = await Promise.all([
       sb.from('event_checks').select('event_id, day, checked_at').in('event_id', ids),
-      sb.from('daily_rolls').select('event_id, day, slot, result, detail, task_text, rolled_at, rolled_by').in('event_id', ids).order('slot'),
+      sb.from('daily_rolls').select('event_id, day, slot, result, detail, task_text, base_text, alt_used, rolled_at, rolled_by').in('event_id', ids).order('slot'),
       sb.from('task_checks').select('event_id, day, slot, checked_at').in('event_id', ids),
       sb.from('penalty_checks').select('event_id, day, slot, done_at').in('event_id', ids),
     ]);

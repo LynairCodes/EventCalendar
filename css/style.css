@@ -157,11 +157,11 @@ legend { padding: 0 0.3rem; font-weight: 600; }
 .axis { display: flex; gap: 2px; margin-top: 3px; }
 .axis span { flex: 1; text-align: center; font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 0; overflow: hidden; }
 .task-rows { display: grid; gap: 0.45rem; }
-.task-row { display: grid; grid-template-columns: 6.5rem 1fr 3.6rem auto; gap: 0.4rem; align-items: center; }
+.task-row { display: grid; grid-template-columns: 6.5rem 1fr 3.6rem 5.4rem; gap: 0.4rem; align-items: center; }
 .task-row .prob { font-size: 0.82rem; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
-.task-head { display: grid; grid-template-columns: 6.5rem 1fr 3.6rem auto; gap: 0.4rem; font-size: 0.82rem; color: var(--muted); }
+.task-head { display: grid; grid-template-columns: 6.5rem 1fr 3.6rem 5.4rem; gap: 0.4rem; font-size: 0.82rem; color: var(--muted); }
 @media (max-width: 520px) {
-  .task-row, .task-head { grid-template-columns: 5rem 1fr auto; }
+  .task-row, .task-head { grid-template-columns: 5rem 1fr 5.4rem; }
   .task-row .prob, .task-head .ph { display: none; }
 }
 
@@ -324,3 +324,20 @@ textarea {
 .label-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
 .label-row label { font-size: 0.9rem; color: var(--muted); }
 .desc-preview { border: 1px dashed var(--line); border-radius: 8px; padding: 0.7rem 0.8rem; min-height: 8rem; }
+
+/* Cooldown in der Aufgabenliste */
+.task-item { display: grid; gap: 0.3rem; }
+.row-btns { display: flex; gap: 0.3rem; justify-content: flex-end; }
+.cd-toggle { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em; }
+.cd-toggle.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.cd-row {
+  display: grid; grid-template-columns: auto 1fr; gap: 0.4rem; align-items: center;
+  margin-left: 6.9rem; padding: 0.35rem 0.5rem; border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface)); border-radius: 0 6px 6px 0;
+}
+.cd-days { display: flex; align-items: center; gap: 0.35rem; color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+.cd-days input { width: 4.2rem; padding: 0.35rem 0.4rem; }
+.cd-row .alt { padding: 0.35rem 0.5rem; }
+@media (max-width: 520px) {
+  .cd-row { margin-left: 0; grid-template-columns: 1fr; }
+}

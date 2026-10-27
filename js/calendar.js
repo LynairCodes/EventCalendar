@@ -133,6 +133,7 @@ function taskSection(e, day) {
     const canToggle = canWorkTask(day) && (st.status === 'open' || st.status === 'done');
     const info = [];
     info.push(`Wurf: ${r.detail}, ${r.rolled_by ? 'gewürfelt' : 'automatisch gewürfelt'} am ${fmtStamp(r.rolled_at)}`);
+    if (r.alt_used) info.push(`Gewürfelt wurde „${r.base_text}“. Die hat noch Cooldown, daher die Alternative.`);
     if (st.status === 'done') info.push(`Erledigt am ${fmtStamp(st.check.checked_at)}`);
     if (st.status === 'open') info.push(`Abhaken möglich bis ${deadline}`);
     if (st.status === 'penalty') info.push(`Strafe seit ${deadline}`);
