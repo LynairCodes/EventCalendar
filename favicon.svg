@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Kalenderblatt -->
+  <rect x="4" y="8" width="56" height="52" rx="12" fill="#8A2BB8"/>
+  <!-- pinker Kopf -->
+  <rect x="4" y="8" width="56" height="16" rx="12" fill="#E64980"/>
+  <rect x="4" y="16" width="56" height="8" fill="#E64980"/>
+  <!-- Ringe -->
+  <rect x="16" y="3" width="6" height="12" rx="3" fill="#5A1A7A"/>
+  <rect x="42" y="3" width="6" height="12" rx="3" fill="#5A1A7A"/>
+  <!-- Würfel mit drei Augen -->
+  <rect x="18" y="29" width="28" height="26" rx="6" fill="#FFFFFF"/>
+  <circle cx="25" cy="36" r="3" fill="#8A2BB8"/>
+  <circle cx="32" cy="42" r="3" fill="#8A2BB8"/>
+  <circle cx="39" cy="48" r="3" fill="#8A2BB8"/>
+</svg>
